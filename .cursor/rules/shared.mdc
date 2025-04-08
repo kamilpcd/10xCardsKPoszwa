@@ -3,9 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
-# AI Rules for {app-name}
+# AI Rules for FiszkiAIkp
 
-{project-description}
+FiszkiAIkp is a web-based educational application that allows you to create high-quality flashcards, both using automatic generation by AI (via API) and manual editing. The application is addressed to students and pupils of primary and secondary schools who want to use the spaced repetition method for effective learning. The system integrates flashcard generation based on entered text, allows for candidate review and flashcard management through a simple interface with user accounts, search engine and pagination. Automatic flashcards are subject to validation and manual verification before saving, and the saved data cooperates with a ready-made repetition algorithm based on open-source solutions.
 
 ## Tech Stack
 
