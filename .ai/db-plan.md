@@ -3,6 +3,12 @@
 ## Tabele
 
 ### 1. Tabela `users`
+
+THIS TABLE IS MANAGED BY SUPABASE AUTH
+
+- `id` UUID PRIMARY KEY
+- `email` VARCHAR(255) NOT NULL UNIQUE
+- `encrypted_password` VARCHAR NOT NULL
 - `encrypted_password` VARCHAR NOT NULL
 - `created_at` TIMESTAMPTZ NOT NULL DEFAULT now()
 - `confirmed_at` TIMESTAMPTZ
