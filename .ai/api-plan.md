@@ -88,6 +88,7 @@
 **Errors**: 
     - 400 Bad Request for invalid inputs, including validation errors for any flashcard in the array.
     - 401 Unauthorized
+    - 500 Internal server error
 
 - **GET /api/flashcards/{id}**
 
