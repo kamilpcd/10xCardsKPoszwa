@@ -1,0 +1,15 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FlashcardGenerateView from "../components/FlashcardGenerateView";
+---
+
+<Layout title="Generowanie fiszek - FiszkiAIkp">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Generowanie fiszek z tekstu</h1>
+    <p class="mb-6 text-gray-700 dark:text-gray-300">
+      Wprowadź tekst (1000-10000 znaków), aby wygenerować propozycje fiszek za pomocą AI.
+    </p>
+    <FlashcardGenerateView client:load />
+  </main>
+</Layout>
+
