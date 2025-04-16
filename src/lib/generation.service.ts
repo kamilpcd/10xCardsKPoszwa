@@ -2,9 +2,43 @@ import crypto from 'crypto';
 import type { SupabaseClient } from '../db/supabase.client';
 import type { FlashcardProposalDTO, GenerationResponseDTO } from '../types';
 import { DEFAULT_USER_ID } from '../db/supabase.client';
+import { OpenRouterService } from './openrouter.service';
+import { OpenRouterError } from './openrouter.types';
 
 export class GenerationService {
-  constructor(private readonly supabase: SupabaseClient) {}
+  private readonly openRouter: OpenRouterService;
+  private readonly flashcardsSchema = {
+    name: "flashcards",
+    schema: {
+      type: "object",
+      properties: {
+        flashcards: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              front: { type: "string" },
+              back: { type: "string" }
+            },
+            required: ["front", "back"]
+          }
+        }
+      },
+      required: ["flashcards"]
+    }
+  }
+
+  constructor(
+    private readonly supabase: SupabaseClient,
+    openRouterConfig?: { apiKey?: string; apiUrl?: string }
+  ) {
+    this.openRouter = new OpenRouterService(openRouterConfig ?? {});
+    this.openRouter.setModel('openai/gpt-4o-mini', {
+      temperature: 0.7,
+      top_p: 1
+    });
+    this.openRouter.setResponseFormat(this.flashcardsSchema);
+  }
 
   async generateFlashcards(sourceText: string): Promise<GenerationResponseDTO> {
     try {
@@ -43,7 +77,7 @@ export class GenerationService {
       .from('generations')
       .insert({
         user_id: DEFAULT_USER_ID,
-        model: 'openrouter-test', // TODO: Make configurable
+        model: 'openai/gpt-4o-mini', // TODO: Make configurable
         source_text_hash: data.sourceTextHash,
         source_text_length: data.sourceText.length,
         generated_count: data.generatedCount,
@@ -64,23 +98,31 @@ export class GenerationService {
   }
 
   private async callAIService(sourceText: string): Promise<FlashcardProposalDTO[]> {
-    // Symulacja opóźnienia odpowiedzi API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      this.openRouter.setSystemMessage(
+        'You are an AI assistant specialized in creating high-quality flashcards from provided text. Generate concise, clear, and effective flashcards that capture key concepts and knowledge. Each flashcard should have a front (question/prompt) and back (answer/explanation). Focus on important facts, definitions, concepts, and relationships.'
+      );
 
-    // TODO: Implementacja integracji z Openrouter.ai
-    // Mock odpowiedzi AI
-    return [
-      {
-        front: "Co to jest TypeScript?",
-        back: "TypeScript to typowany nadzbiór JavaScript, który kompiluje się do czystego JavaScript.",
-        source: "ai-full"
-      },
-      {
-        front: "Jakie są główne zalety TypeScript?",
-        back: "Statyczne typowanie, wsparcie dla nowoczesnych funkcji JS, lepsze wsparcie IDE, wykrywanie błędów podczas kompilacji.",
-        source: "ai-full"
+      const response = await this.openRouter.sendChatMessage(
+        'Generate flashcards from the following text:\n\n' + sourceText
+      );
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('Empty response from AI service');
       }
-    ];
+
+      const parsedContent = JSON.parse(content);
+      return parsedContent.flashcards.map((card: { front: string; back: string }) => ({
+        ...card,
+        source: 'ai-full'
+      }));
+    } catch (error) {
+      if (error instanceof OpenRouterError) {
+        throw error;
+      }
+      throw new Error(`AI service error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private calculateTextHash(text: string): string {
@@ -94,8 +136,8 @@ export class GenerationService {
     try {
       await this.supabase.from('generation_error_logs').insert({
         user_id: DEFAULT_USER_ID,
-        model: 'openrouter-test',
-        error_code: error.code || 'UNKNOWN',
+        model: error instanceof OpenRouterError ? 'openrouter-gpt4' : 'unknown',
+        error_code: error instanceof OpenRouterError ? error.code : 'UNKNOWN',
         error_message: error.message || 'Unknown error occurred',
         source_text_hash: this.calculateTextHash(sourceText),
         source_text_length: sourceText.length

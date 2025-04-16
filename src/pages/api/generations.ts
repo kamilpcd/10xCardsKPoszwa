@@ -30,7 +30,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Inicjalizacja serwisu i wywołanie generacji
-    const generationService = new GenerationService(locals.supabase);
+    const generationService = new GenerationService(locals.supabase, {
+      apiKey: import.meta.env.OPENROUTER_API_KEY
+    });
     const result = await generationService.generateFlashcards(body.source_text);
 
     return new Response(JSON.stringify(result), {
