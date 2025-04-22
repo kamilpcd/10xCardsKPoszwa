@@ -1,0 +1,22 @@
+---
+import Layout from "../layouts/Layout.astro";
+import RegisterForm from "../components/RegisterForm";
+---
+
+<Layout title="Rejestracja - FiszkiAIkp">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Rejestracja</h1>
+    <p class="mb-6 text-gray-700 dark:text-gray-300">
+      Utwórz konto, aby korzystać z wszystkich funkcji aplikacji.
+    </p>
+    <div class="max-w-md mx-auto">
+      <RegisterForm client:load />
+      <div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p>
+          Masz już konto? <a href="/login" class="text-blue-600 dark:text-blue-400 hover:underline">Zaloguj się</a>
+        </p>
+      </div>
+    </div>
+  </main>
+</Layout>
+
