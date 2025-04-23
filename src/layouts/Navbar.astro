@@ -1,0 +1,82 @@
+---
+// Pobieranie informacji o zalogowanym użytkowniku
+const { user } = Astro.locals;
+---
+
+<header class="w-full bg-white dark:bg-slate-950 shadow-sm py-3">
+  <div class="container mx-auto px-4 flex justify-between items-center">
+    <div class="flex items-center space-x-8">
+      <a href="/" class="text-xl font-bold text-blue-600 dark:text-blue-400">FiszkiAIkp</a>
+      
+      {user && (
+        <nav class="ml-6">
+          <ul class="flex space-x-6">
+            <li>
+              <a
+                href="/generate"
+                class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                Generowanie fiszek
+              </a>
+            </li>
+            <!-- Tutaj można dodać więcej linków nawigacyjnych w przyszłości -->
+          </ul>
+        </nav>
+      )}
+    </div>
+
+    <div class="flex items-center space-x-4">
+      {
+        user ? (
+          <>
+            <span class="text-blue-500 dark:text-blue-400 font-medium">
+              {user.email}
+            </span>
+            <button
+              id="logout-button"
+              class="px-4 py-2 bg-gray-800 dark:bg-gray-900 hover:bg-gray-700 dark:hover:bg-gray-800 text-white rounded-md transition-colors"
+            >
+              Wyloguj się
+            </button>
+          </>
+        ) : (
+          <a
+            href="/login"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          >
+            Zaloguj się
+          </a>
+        )
+      }
+    </div>
+  </div>
+</header>
+
+<script>
+  // Obsługa przycisku wylogowania
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutButton = document.getElementById("logout-button");
+
+    if (logoutButton) {
+      logoutButton.addEventListener("click", async () => {
+        try {
+          const response = await fetch("/api/auth/logout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            // Przekierowanie na stronę logowania po pomyślnym wylogowaniu
+            window.location.href = "/login";
+          } else {
+            console.error("Błąd wylogowania");
+          }
+        } catch (error) {
+          console.error("Błąd podczas wylogowania:", error);
+        }
+      });
+    }
+  });
+</script>

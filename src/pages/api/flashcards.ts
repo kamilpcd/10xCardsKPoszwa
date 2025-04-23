@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import type { CreateFlashcardsDTO, FlashcardDTO } from '../../types';
-import { DEFAULT_USER_ID } from '../../db/supabase.client';
 import { FlashcardService, DatabaseError } from '../../lib/flashcard.service';
 
 // Validation schema for individual flashcard
@@ -39,6 +38,18 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    // Sprawdzenie, czy użytkownik jest zalogowany
+    if (!locals.user) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Unauthorized', 
+          message: 'Musisz być zalogowany, aby zapisywać fiszki' 
+        }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const { supabase } = locals;
     const flashcardService = new FlashcardService(supabase);
 
@@ -82,8 +93,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
       throw error; // Re-throw unknown errors
     }
 
-    // Save flashcards
-    const createdFlashcards = await flashcardService.createFlashcardsInBatch(DEFAULT_USER_ID, flashcards);
+    // Save flashcards - używamy ID zalogowanego użytkownika
+    const createdFlashcards = await flashcardService.createFlashcardsInBatch(
+      locals.user.id, 
+      flashcards
+    );
     
     return new Response(JSON.stringify({ flashcards: createdFlashcards }), {
       status: 201,

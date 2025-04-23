@@ -37,22 +37,38 @@ export default function LoginForm() {
     }
 
     setIsLoading(true);
+    setErrors({});
 
     try {
-      // Tutaj będzie integracja z backendem
-      console.log("Logowanie z danymi:", { email, password });
-
-      // Symulacja opóźnienia - do usunięcia przy faktycznej integracji
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Przykładowa obsługa błędu - do zastąpienia faktyczną integracją
-      setErrors({
-        general: "To jest przykładowy komunikat błędu. Zostanie zastąpiony integracją z backendem.",
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.errors) {
+          // Obsługa błędów walidacji
+          setErrors(data.errors);
+        } else {
+          // Obsługa błędów autentykacji
+          setErrors({
+            general: data.message || "Wystąpił błąd podczas logowania. Spróbuj ponownie później.",
+          });
+        }
+      } else {
+        // Pomyślne logowanie - przekierowanie na stronę generowania fiszek
+        window.location.href = "/generate";
+      }
     } catch (error) {
       setErrors({
         general: "Wystąpił błąd podczas logowania. Spróbuj ponownie później.",
       });
+      console.error("Błąd logowania:", error);
     } finally {
       setIsLoading(false);
     }

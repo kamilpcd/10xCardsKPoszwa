@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import type { SupabaseClient } from '../db/supabase.client';
 import type { FlashcardProposalDTO, GenerationResponseDTO } from '../types';
-import { DEFAULT_USER_ID } from '../db/supabase.client';
 import { OpenRouterService } from './openrouter.service';
 import { OpenRouterError } from './openrouter.types';
 
@@ -40,7 +39,7 @@ export class GenerationService {
     this.openRouter.setResponseFormat(this.flashcardsSchema);
   }
 
-  async generateFlashcards(sourceText: string): Promise<GenerationResponseDTO> {
+  async generateFlashcards(sourceText: string, userId: string): Promise<GenerationResponseDTO> {
     try {
       const startTime = Date.now();
       const sourceTextHash = this.calculateTextHash(sourceText);
@@ -53,7 +52,8 @@ export class GenerationService {
         sourceText,
         sourceTextHash,
         generatedCount: proposals.length,
-        durationMs: Date.now() - startTime
+        durationMs: Date.now() - startTime,
+        userId
       });
 
       return {
@@ -62,7 +62,7 @@ export class GenerationService {
         generated_count: proposals.length
       };
     } catch (error) {
-      await this.logGenerationError(error, sourceText);
+      await this.logGenerationError(error, sourceText, userId);
       throw error;
     }
   }
@@ -72,11 +72,12 @@ export class GenerationService {
     sourceTextHash: string;
     generatedCount: number;
     durationMs: number;
+    userId: string;
   }): Promise<number> {
     const { data: generation, error: dbError } = await this.supabase
       .from('generations')
       .insert({
-        user_id: DEFAULT_USER_ID,
+        user_id: data.userId,
         model: 'openai/gpt-4o-mini', // TODO: Make configurable
         source_text_hash: data.sourceTextHash,
         source_text_length: data.sourceText.length,
@@ -132,10 +133,10 @@ export class GenerationService {
       .digest('hex');
   }
 
-  private async logGenerationError(error: any, sourceText: string): Promise<void> {
+  private async logGenerationError(error: any, sourceText: string, userId: string): Promise<void> {
     try {
       await this.supabase.from('generation_error_logs').insert({
-        user_id: DEFAULT_USER_ID,
+        user_id: userId,
         model: error instanceof OpenRouterError ? 'openrouter-gpt4' : 'unknown',
         error_code: error instanceof OpenRouterError ? error.code : 'UNKNOWN',
         error_message: error.message || 'Unknown error occurred',

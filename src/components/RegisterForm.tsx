@@ -55,22 +55,38 @@ export default function RegisterForm() {
     }
 
     setIsLoading(true);
+    setErrors({});
 
     try {
-      // Tutaj będzie integracja z backendem
-      console.log("Rejestracja z danymi:", { email, password, confirmPassword });
-
-      // Symulacja opóźnienia - do usunięcia przy faktycznej integracji
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Przykładowa obsługa błędu - do zastąpienia faktyczną integracją
-      setErrors({
-        general: "To jest przykładowy komunikat błędu. Zostanie zastąpiony integracją z backendem.",
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.errors) {
+          // Obsługa błędów walidacji
+          setErrors(data.errors);
+        } else {
+          // Obsługa błędów rejestracji
+          setErrors({
+            general: data.error || "Wystąpił błąd podczas rejestracji. Spróbuj ponownie później.",
+          });
+        }
+      } else {
+        // Pomyślna rejestracja - przekierowanie na stronę generowania fiszek
+        window.location.href = "/generate";
+      }
     } catch (error) {
       setErrors({
         general: "Wystąpił błąd podczas rejestracji. Spróbuj ponownie później.",
       });
+      console.error("Błąd rejestracji:", error);
     } finally {
       setIsLoading(false);
     }
