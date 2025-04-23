@@ -57,11 +57,18 @@ Użytkownicy (głównie uczniowie i studenci) napotykają na problem związany z
 
 ### US-001
 **Tytuł:** Rejestracja i logowanie  
-**Opis:** Jako użytkownik, chcę móc założyć konto oraz się zalogować, aby uzyskać dostęp do zapisanych fiszek oraz korzystać z funkcji aplikacji.  
+**Opis:** Jako użytkownik, chcę móc założyć konto oraz się zalogować, aby uzyskać dostęp do korzystania z funkcji aplikacji.  
 **Kryteria akceptacji:**
 - Użytkownik może zarejestrować się, podając wymagane dane (np. adres e-mail, hasło).
 - Po rejestracji użytkownik może się zalogować.
-- Dostęp do funkcjonalności generowania, recenzji i zarządzania fiszkami mają jedynie zalogowani użytkownicy.
+- Użytkownik NIE MOŻE korzystać z żadnej funkcji bez logowania się do systemu - wszystkie funkcje w systemie są obecnie powiązane z użytkownikiem (US-002, US-003, US-004, US-005, US-006, US-007, US-008), dlatego od razu przekierowujemy do strony logowania i wymagamy logowania/rejestracji.
+- Logowanie i rejestracja odbywają się na dedykowanych stronach.
+   - Logowanie wymaga podania adresu email i hasła.
+   - Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła.
+   - Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+   - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
+   - Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+   - Odzyskiwanie hasła powinno być możliwe.
 
 ### US-002
 **Tytuł:** Generowanie fiszek przez AI  

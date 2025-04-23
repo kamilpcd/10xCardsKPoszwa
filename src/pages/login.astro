@@ -1,0 +1,32 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/LoginForm";
+
+// Sprawdzenie czy użytkownik jest już zalogowany
+if (Astro.locals.user) {
+  return Astro.redirect("/generate");
+}
+
+// Ustawienie strony jako nie prerenderowanej, aby mogła sprawdzać stan logowania
+export const prerender = false;
+---
+
+<Layout title="Logowanie - FiszkiAIkp">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Logowanie</h1>
+    <p class="mb-6 text-gray-700 dark:text-gray-300">Zaloguj się do swojego konta, aby generować fiszki!</p>
+    <div class="max-w-md mx-auto">
+      <LoginForm client:load />
+      <div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p class="mb-2">
+          Nie masz jeszcze konta? <a href="/register" class="text-blue-600 dark:text-blue-400 hover:underline"
+            >Zarejestruj się</a
+          >
+        </p>
+        <p>
+          <a href="/password-recovery" class="text-blue-600 dark:text-blue-400 hover:underline">Zapomniałem hasła</a>
+        </p>
+      </div>
+    </div>
+  </main>
+</Layout>

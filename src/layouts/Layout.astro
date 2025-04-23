@@ -1,15 +1,16 @@
 ---
 import "../styles/global.css";
+import Navbar from "../layouts/Navbar.astro";
 
 interface Props {
   title?: string;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title = "FiszkiAIkp" } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -17,8 +18,14 @@ const { title = "10x Astro Starter" } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body>
-    <slot />
+  <body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50">
+    <Navbar />
+    <div class="flex-grow">
+      <slot />
+    </div>
+    <footer class="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
+      FiszkiAIkp &copy; {new Date().getFullYear()}
+    </footer>
   </body>
 </html>
 

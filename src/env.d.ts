@@ -3,10 +3,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './db/database.types';
 
+interface User {
+  id: string;
+  email?: string;
+}
+
 declare global {
   namespace App {
     interface Locals {
       supabase: SupabaseClient<Database>;
+      user?: User;
     }
   }
 }
@@ -20,4 +26,12 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+/// <reference types="astro/client" />
+interface Locals {
+  user?: {
+    id: string;
+    email: string;
+  };
 }

@@ -14,6 +14,17 @@ const createGenerationSchema = z.object({
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    // Sprawdzenie, czy użytkownik jest zalogowany
+    if (!locals.user) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Musisz być zalogowany, aby generować fiszki'
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     // Parsowanie body requestu
     const body = await request.json() as CreateGenerationCommandDTO;
 
@@ -33,7 +44,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const generationService = new GenerationService(locals.supabase, {
       apiKey: import.meta.env.OPENROUTER_API_KEY
     });
-    const result = await generationService.generateFlashcards(body.source_text);
+    
+    // Przekazanie ID zalogowanego użytkownika
+    const result = await generationService.generateFlashcards(
+      body.source_text, 
+      locals.user.id
+    );
 
     return new Response(JSON.stringify(result), {
       status: 201,
