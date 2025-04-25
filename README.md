@@ -17,6 +17,10 @@ fiszki-ai-kp is a web-based educational application that enables users to create
   - Integration with an open-source spaced repetition algorithm
 - **AI Integration:**
   - Openrouter.ai for accessing various AI models (e.g., OpenAI, Anthropic, Google)
+- **Testing:**
+  - Vitest for unit and integration tests
+  - React Testing Library for component testing
+  - Playwright for end-to-end (E2E) tests, API testing, and visual regression tests
 - **CI/CD and Hosting:**
   - GitHub Actions
   - DigitalOcean (via Docker)
