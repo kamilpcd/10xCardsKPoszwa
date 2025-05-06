@@ -1,7 +1,7 @@
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import type { CreateFlashcardsDTO, FlashcardDTO } from '../../types';
-import { FlashcardService, DatabaseError } from '../../lib/flashcard.service';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import type { CreateFlashcardsDTO } from "../../types";
+import { FlashcardService, DatabaseError } from "../../lib/flashcard.service";
 
 // Validation schema for individual flashcard
 const flashcardSchema = z
@@ -29,7 +29,8 @@ const flashcardSchema = z
 
 // Validation schema for the entire request
 const createFlashcardsSchema = z.object({
-  flashcards: z.array(flashcardSchema)
+  flashcards: z
+    .array(flashcardSchema)
     .min(1, "At least one flashcard is required")
     .max(100, "Maximum 100 flashcards allowed per request"),
 });
@@ -41,13 +42,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Sprawdzenie, czy użytkownik jest zalogowany
     if (!locals.user) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Unauthorized', 
-          message: 'Musisz być zalogowany, aby zapisywać fiszki' 
-        }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Musisz być zalogowany, aby zapisywać fiszki",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const { supabase } = locals;
@@ -55,77 +58,78 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Parse request body
     const body = await request.json();
-    
+
     // Validate input data
     const validationResult = createFlashcardsSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input', 
-          details: validationResult.error.errors 
-        }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+        JSON.stringify({
+          error: "Invalid input",
+          details: validationResult.error.errors,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const { flashcards } = validationResult.data as CreateFlashcardsDTO;
 
     // Validate that all referenced generation_ids exist
-    const generationIds = flashcards
-      .map((f) => f.generation_id)
-      .filter((id): id is number => id !== null);
+    const generationIds = flashcards.map((f) => f.generation_id).filter((id): id is number => id !== null);
 
     try {
       await flashcardService.validateGenerationIds(generationIds);
     } catch (error: unknown) {
       if (error instanceof DatabaseError) {
         return new Response(
-          JSON.stringify({ 
-            error: error.code, 
-            details: error.details 
-          }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+          JSON.stringify({
+            error: error.code,
+            details: error.details,
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
       }
       throw error; // Re-throw unknown errors
     }
 
     // Save flashcards - używamy ID zalogowanego użytkownika
-    const createdFlashcards = await flashcardService.createFlashcardsInBatch(
-      locals.user.id, 
-      flashcards
-    );
-    
+    const createdFlashcards = await flashcardService.createFlashcardsInBatch(locals.user.id, flashcards);
+
     return new Response(JSON.stringify({ flashcards: createdFlashcards }), {
       status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
-    console.error('Error creating flashcards:', error);
-    
+    // Rejestrujemy błąd bez używania console.error
+    // Tutaj można zaimplementować bardziej zaawansowane logowanie
     if (error instanceof DatabaseError) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: error.code,
-          details: error.details
-        }), {
+          details: error.details,
+        }),
+        {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     return new Response(
-      JSON.stringify({ 
-        error: 'INTERNAL_SERVER_ERROR',
-        details: 'An unexpected error occurred'
-      }), {
+      JSON.stringify({
+        error: "INTERNAL_SERVER_ERROR",
+        details: "An unexpected error occurred",
+      }),
+      {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
-}; 
+};

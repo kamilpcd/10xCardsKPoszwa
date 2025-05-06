@@ -1,8 +1,8 @@
-import crypto from 'crypto';
-import type { SupabaseClient } from '../db/supabase.client';
-import type { FlashcardProposalDTO, GenerationResponseDTO } from '../types';
-import { OpenRouterService } from './openrouter.service';
-import { OpenRouterError } from './openrouter.types';
+import crypto from "crypto";
+import type { SupabaseClient } from "../db/supabase.client";
+import type { FlashcardProposalDTO, GenerationResponseDTO } from "../types";
+import { OpenRouterService } from "./openrouter.service";
+import { OpenRouterError } from "./openrouter.types";
 
 export class GenerationService {
   private readonly openRouter: OpenRouterService;
@@ -17,24 +17,24 @@ export class GenerationService {
             type: "object",
             properties: {
               front: { type: "string" },
-              back: { type: "string" }
+              back: { type: "string" },
             },
-            required: ["front", "back"]
-          }
-        }
+            required: ["front", "back"],
+          },
+        },
       },
-      required: ["flashcards"]
-    }
-  }
+      required: ["flashcards"],
+    },
+  };
 
   constructor(
     private readonly supabase: SupabaseClient,
     openRouterConfig?: { apiKey?: string; apiUrl?: string }
   ) {
     this.openRouter = new OpenRouterService(openRouterConfig ?? {});
-    this.openRouter.setModel('openai/gpt-4o-mini', {
+    this.openRouter.setModel("openai/gpt-4o-mini", {
       temperature: 0.7,
-      top_p: 1
+      top_p: 1,
     });
     this.openRouter.setResponseFormat(this.flashcardsSchema);
   }
@@ -53,13 +53,13 @@ export class GenerationService {
         sourceTextHash,
         generatedCount: proposals.length,
         durationMs: Date.now() - startTime,
-        userId
+        userId,
       });
 
       return {
         generation_id: generationId,
         flashcards_proposals: proposals,
-        generated_count: proposals.length
+        generated_count: proposals.length,
       };
     } catch (error) {
       await this.logGenerationError(error, sourceText, userId);
@@ -75,25 +75,24 @@ export class GenerationService {
     userId: string;
   }): Promise<number> {
     const { data: generation, error: dbError } = await this.supabase
-      .from('generations')
+      .from("generations")
       .insert({
         user_id: data.userId,
-        model: 'openai/gpt-4o-mini', // TODO: Make configurable
+        model: "openai/gpt-4o-mini", // TODO: Make configurable
         source_text_hash: data.sourceTextHash,
         source_text_length: data.sourceText.length,
         generated_count: data.generatedCount,
-        generation_duration: data.durationMs
+        generation_duration: data.durationMs,
       })
       .select("id")
       .single();
 
-      if (dbError) {
-        console.error('Supabase error details:', dbError);
-        throw new Error(`Failed to create generation record: ${dbError.message}`);
-      }
-      if (!generation) {
-        throw new Error('Failed to create generation record: No data returned');
-      }
+    if (dbError) {
+      throw new Error(`Failed to create generation record: ${dbError.message}`);
+    }
+    if (!generation) {
+      throw new Error("Failed to create generation record: No data returned");
+    }
 
     return generation.id;
   }
@@ -101,50 +100,51 @@ export class GenerationService {
   private async callAIService(sourceText: string): Promise<FlashcardProposalDTO[]> {
     try {
       this.openRouter.setSystemMessage(
-        'You are an AI assistant specialized in creating high-quality flashcards from provided text. Generate concise, clear, and effective flashcards that capture key concepts and knowledge. Each flashcard should have a front (question/prompt) and back (answer/explanation). Focus on important facts, definitions, concepts, and relationships.'
+        "You are an AI assistant specialized in creating high-quality flashcards from provided text. Generate concise, clear, and effective flashcards that capture key concepts and knowledge. Each flashcard should have a front (question/prompt) and back (answer/explanation). Focus on important facts, definitions, concepts, and relationships."
       );
 
       const response = await this.openRouter.sendChatMessage(
-        'Generate flashcards from the following text:\n\n' + sourceText
+        "Generate flashcards from the following text:\n\n" + sourceText
       );
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new Error('Empty response from AI service');
+        throw new Error("Empty response from AI service");
       }
 
       const parsedContent = JSON.parse(content);
       return parsedContent.flashcards.map((card: { front: string; back: string }) => ({
         ...card,
-        source: 'ai-full'
+        source: "ai-full",
       }));
     } catch (error) {
       if (error instanceof OpenRouterError) {
         throw error;
       }
-      throw new Error(`AI service error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`AI service error: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
   private calculateTextHash(text: string): string {
-    return crypto
-      .createHash('md5')
-      .update(text)
-      .digest('hex');
+    return crypto.createHash("md5").update(text).digest("hex");
   }
 
-  private async logGenerationError(error: any, sourceText: string, userId: string): Promise<void> {
+  private async logGenerationError(
+    error: Error | OpenRouterError | unknown,
+    sourceText: string,
+    userId: string
+  ): Promise<void> {
     try {
-      await this.supabase.from('generation_error_logs').insert({
+      await this.supabase.from("generation_error_logs").insert({
         user_id: userId,
-        model: error instanceof OpenRouterError ? 'openrouter-gpt4' : 'unknown',
-        error_code: error instanceof OpenRouterError ? error.code : 'UNKNOWN',
-        error_message: error.message || 'Unknown error occurred',
+        model: error instanceof OpenRouterError ? "openrouter-gpt4" : "unknown",
+        error_code: error instanceof OpenRouterError ? error.code : "UNKNOWN",
+        error_message: error instanceof Error ? error.message : "Unknown error occurred",
         source_text_hash: this.calculateTextHash(sourceText),
-        source_text_length: sourceText.length
+        source_text_length: sourceText.length,
       });
-    } catch (logError) {
-      console.error('Failed to log generation error:', logError);
+    } catch {
+      // Błąd logowania może być bezpiecznie ignorowany
     }
   }
-} 
+}

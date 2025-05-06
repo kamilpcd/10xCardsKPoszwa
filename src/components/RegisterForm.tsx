@@ -82,11 +82,10 @@ export default function RegisterForm() {
         // Pomyślna rejestracja - przekierowanie na stronę generowania fiszek
         window.location.href = "/generate";
       }
-    } catch (error) {
+    } catch {
       setErrors({
         general: "Wystąpił błąd podczas rejestracji. Spróbuj ponownie później.",
       });
-      console.error("Błąd rejestracji:", error);
     } finally {
       setIsLoading(false);
     }

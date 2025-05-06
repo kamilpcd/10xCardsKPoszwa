@@ -63,7 +63,7 @@ vi.mock("../../src/components/FlashcardProposalsList", () => ({
 }));
 
 vi.mock("../../src/components/BulkSaveButton", () => ({
-  BulkSaveButton: vi.fn(({ generationId, flashcards, disabled, onSaveComplete }) => (
+  BulkSaveButton: vi.fn(({ flashcards, disabled, onSaveComplete }) => (
     <button data-testid="bulk-save-button" onClick={onSaveComplete} disabled={disabled}>
       Zapisz zaakceptowane ({flashcards.filter((f: FlashcardProposalViewModel) => f.accepted).length})
     </button>
@@ -143,8 +143,8 @@ describe("FlashcardGenerateView", () => {
   it("powinien wyświetlić SkeletonLoader i następnie listę propozycji fiszek po pomyślnym wygenerowaniu", async () => {
     // Arrange
     // Stworzenie mocka w taki sposób, aby zwracał najpierw Promise, który się nie rozwiązuje natychmiast
-    let resolvePromise: (value: any) => void;
-    const responsePromise = new Promise((resolve) => {
+    let resolvePromise: (value: Response) => void;
+    const responsePromise = new Promise<Response>((resolve) => {
       resolvePromise = resolve;
     });
 
@@ -162,15 +162,17 @@ describe("FlashcardGenerateView", () => {
     expect(screen.getByTestId("skeleton-loader")).toBeInTheDocument();
 
     // Teraz symulujemy zakończenie zapytania
-    resolvePromise!({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          generation_id: 123,
-          flashcards_proposals: mockFlashcardProposals,
-          generated_count: 2,
-        }),
-    });
+    if (resolvePromise) {
+      resolvePromise({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            generation_id: 123,
+            flashcards_proposals: mockFlashcardProposals,
+            generated_count: 2,
+          }),
+      });
+    }
 
     // Po zakończeniu ładowania powinna pojawić się lista fiszek
     await waitFor(() => {

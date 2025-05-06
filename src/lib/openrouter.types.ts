@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export interface ModelParameters {
   temperature?: number;
@@ -8,13 +8,13 @@ export interface ModelParameters {
 }
 
 export interface RequestPayload {
-  messages: Array<{
-    role: 'system' | 'user';
+  messages: {
+    role: "system" | "user";
     content: string;
-  }>;
+  }[];
   model: string;
   response_format?: {
-    type: 'json_schema';
+    type: "json_schema";
     json_schema: Record<string, unknown>;
   };
   temperature?: number;
@@ -24,23 +24,25 @@ export interface RequestPayload {
 }
 
 export const apiResponseSchema = z.object({
-  choices: z.array(
-    z.object({
-      message: z.object({
-        role: z.string(),
-        content: z.string()
+  choices: z
+    .array(
+      z.object({
+        message: z.object({
+          role: z.string(),
+          content: z.string(),
+        }),
       })
-    })
-  ).min(1, 'API response must contain at least one choice')
+    )
+    .min(1, "API response must contain at least one choice"),
 });
 
 export type ApiResponse = z.infer<typeof apiResponseSchema>;
 
 export const configSchema = z.object({
-  apiKey: z.string().min(1, 'API key is required'),
-  apiUrl: z.string().url().optional().default('https://openrouter.ai/api/v1'),
+  apiKey: z.string().min(1, "API key is required"),
+  apiUrl: z.string().url().optional().default("https://openrouter.ai/api/v1"),
   timeout: z.number().positive().optional().default(30000),
-  maxRetries: z.number().int().positive().optional().default(3)
+  maxRetries: z.number().int().positive().optional().default(3),
 });
 
 export type OpenRouterConfig = z.infer<typeof configSchema>;
@@ -53,6 +55,6 @@ export class OpenRouterError extends Error {
     public readonly cause?: unknown
   ) {
     super(message);
-    this.name = 'OpenRouterError';
+    this.name = "OpenRouterError";
   }
-} 
+}

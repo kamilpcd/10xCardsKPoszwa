@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, fireEvent, cleanup, waitFor, act } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { BulkSaveButton } from "@/components/BulkSaveButton";
 import type { FlashcardProposalViewModel } from "@/components/FlashcardGenerateView";
 

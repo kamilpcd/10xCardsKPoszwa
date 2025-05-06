@@ -1,6 +1,6 @@
-import { vi, expect, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { vi, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
 // Przeprowadza czyszczenie po każdym teście
 afterEach(() => {
@@ -17,7 +17,7 @@ global.localStorage = {
   removeItem: vi.fn(),
   clear: vi.fn(),
   key: vi.fn(),
-  length: 0
+  length: 0,
 };
 
 // Dodaje globalny mock dla sessionStorage
@@ -27,5 +27,5 @@ global.sessionStorage = {
   removeItem: vi.fn(),
   clear: vi.fn(),
   key: vi.fn(),
-  length: 0
-}; 
+  length: 0,
+};

@@ -64,11 +64,10 @@ export default function LoginForm() {
         // Pomyślne logowanie - przekierowanie na stronę generowania fiszek
         window.location.href = "/generate";
       }
-    } catch (error) {
+    } catch {
       setErrors({
         general: "Wystąpił błąd podczas logowania. Spróbuj ponownie później.",
       });
-      console.error("Błąd logowania:", error);
     } finally {
       setIsLoading(false);
     }

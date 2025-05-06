@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from "@playwright/test";
 
 export class HomePage {
   readonly page: Page;
@@ -7,12 +7,12 @@ export class HomePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.heading = page.locator('h1');
-    this.navigationLinks = page.locator('nav a');
+    this.heading = page.locator("h1");
+    this.navigationLinks = page.locator("nav a");
   }
 
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto("/");
   }
 
   async expectPageLoaded() {
@@ -23,4 +23,4 @@ export class HomePage {
   async navigateTo(linkText: string) {
     await this.navigationLinks.filter({ hasText: linkText }).click();
   }
-} 
+}

@@ -2,10 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { FlashcardProposalItem } from "../../src/components/FlashcardProposalItem";
 import { type FlashcardProposalViewModel } from "../../src/components/FlashcardGenerateView";
+import type React from "react";
 
 // Mock komponentów UI z shadcn/ui
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, className }: any) => (
+  Button: ({
+    children,
+    onClick,
+    className,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    className?: string;
+  }) => (
     <button onClick={onClick} className={className} data-testid="button">
       {children}
     </button>
@@ -13,22 +22,22 @@ vi.mock("@/components/ui/button", () => ({
 }));
 
 vi.mock("@/components/ui/card", () => ({
-  Card: ({ children, className }: any) => (
+  Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={className} data-testid="card">
       {children}
     </div>
   ),
-  CardContent: ({ children, className }: any) => (
+  CardContent: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={className} data-testid="card-content">
       {children}
     </div>
   ),
-  CardFooter: ({ children, className }: any) => (
+  CardFooter: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={className} data-testid="card-footer">
       {children}
     </div>
   ),
-  CardHeader: ({ children, className }: any) => (
+  CardHeader: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={className} data-testid="card-header">
       {children}
     </div>
@@ -36,13 +45,26 @@ vi.mock("@/components/ui/card", () => ({
 }));
 
 vi.mock("@/components/ui/textarea", () => ({
-  Textarea: ({ value, onChange, className }: any) => (
-    <textarea value={value} onChange={(e: any) => onChange(e)} className={className} data-testid="textarea" />
+  Textarea: ({
+    value,
+    onChange,
+    className,
+  }: {
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    className?: string;
+  }) => (
+    <textarea
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e)}
+      className={className}
+      data-testid="textarea"
+    />
   ),
 }));
 
 vi.mock("@/components/ui/badge", () => ({
-  Badge: ({ children, className }: any) => (
+  Badge: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <span className={className} data-testid="badge">
       {children}
     </span>

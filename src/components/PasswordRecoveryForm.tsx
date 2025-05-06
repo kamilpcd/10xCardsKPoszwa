@@ -37,7 +37,6 @@ export default function PasswordRecoveryForm() {
 
     try {
       // Tutaj będzie integracja z backendem
-      console.log("Odzyskiwanie hasła dla:", { email });
 
       // Symulacja opóźnienia - do usunięcia przy faktycznej integracji
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -45,7 +44,7 @@ export default function PasswordRecoveryForm() {
       // Symulacja sukcesu - do zastąpienia faktyczną integracją
       setIsSuccess(true);
       setEmail("");
-    } catch (error) {
+    } catch {
       setErrors({
         general: "Wystąpił błąd podczas wysyłania linku. Spróbuj ponownie później.",
       });

@@ -142,9 +142,9 @@ const FlashcardGenerateView = () => {
           />
 
           <BulkSaveButton
-            generationId={generationId!}
+            generationId={generationId ?? 0}
             flashcards={flashcards}
-            disabled={flashcards.length === 0}
+            disabled={flashcards.length === 0 || generationId === null}
             onSaveComplete={resetState}
           />
         </>
