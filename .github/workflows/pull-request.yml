@@ -22,13 +22,13 @@ jobs:
       - name: Instalacja zależności
         run: npm ci
 
-      - name: Uruchom lintowanie
+      - name: Lintowanie kodu
         run: npm run lint
 
-  unit-tests:
+  unit-test:
     name: Testy jednostkowe
-    runs-on: ubuntu-latest
     needs: lint
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,113 +42,78 @@ jobs:
       - name: Instalacja zależności
         run: npm ci
 
-      - name: Uruchom testy jednostkowe z pokryciem
+      - name: Uruchomienie testów jednostkowych z pokryciem
         run: npm run test:coverage
 
-      - name: Zachowaj raporty pokrycia kodu
+      - name: Zachowanie raportu pokrycia testów
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-report
+          name: coverage-report
           path: coverage/
-          retention-days: 5
-          if-no-files-found: warn
+          retention-days: 7
 
   status-comment:
-    name: Komentarz o statusie PR
+    name: Komentarz statusu PR
+    needs: [lint, unit-test]
     runs-on: ubuntu-latest
-    needs: [lint, unit-tests]
     if: always()
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Pobierz raporty pokrycia kodu
+      - name: Sprawdzenie statusu zadań
+        id: check-status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.unit-test.result }}" == "success" ]]; then
+            echo "workflow_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "workflow_status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pobranie raportu pokrycia testów
+        if: steps.check-status.outputs.workflow_status == 'success'
         uses: actions/download-artifact@v4
-        if: ${{ needs.unit-tests.result == 'success' }}
         with:
-          name: unit-test-report
-          path: coverage/
+          name: coverage-report
+          path: coverage
 
-      - name: Dodaj komentarz do PR
-        uses: actions/github-script@v7
+      - name: Przygotowanie komentarza dla sukcesu
+        if: steps.check-status.outputs.workflow_status == 'success'
+        id: success-comment
+        run: |
+          COMMENT="📊 **Status PR:** ✅ Wszystkie testy przeszły pomyślnie!
+
+          ### Pokrycie testami:
+          $(cat coverage/coverage-summary.json | jq -r '\"Całkowite pokrycie: \" + (.total.statements.pct|tostring) + \"%\"')
+
+          *Workflow wykonany w ${{ github.workflow }} (#${{ github.run_number }})*"
+          echo "comment=$COMMENT" >> $GITHUB_OUTPUT
+
+      - name: Przygotowanie komentarza dla błędu
+        if: steps.check-status.outputs.workflow_status == 'failure'
+        id: failure-comment
+        run: |
+          COMMENT="❌ **Status PR:** Wystąpiły błędy w procesie weryfikacji!
+
+          ### Szczegóły błędów:
+          - Lintowanie: ${{ needs.lint.result }}
+          - Testy jednostkowe: ${{ needs.unit-test.result }}
+
+          Proszę zapoznać się z logami workflow aby naprawić błędy.
+
+          *Workflow wykonany w ${{ github.workflow }} (#${{ github.run_number }})*"
+          echo "comment=$COMMENT" >> $GITHUB_OUTPUT
+
+      - name: Dodanie komentarza do PR dla sukcesu
+        if: steps.check-status.outputs.workflow_status == 'success'
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          script: |
-            // Sprawdź status poszczególnych zadań
-            const lintStatus = '${{ needs.lint.result }}';
-            const testStatus = '${{ needs.unit-tests.result }}';
+          number: ${{ github.event.pull_request.number }}
+          message: ${{ steps.success-comment.outputs.comment }}
 
-            // Określ ikony statusu
-            const lintIcon = lintStatus === 'success' ? '✅' : '❌';
-            const testIcon = testStatus === 'success' ? '✅' : '❌';
-
-            // Określ ogólny status CI
-            const isSuccess = lintStatus === 'success' && testStatus === 'success';
-            const ciStatus = isSuccess ? '✅ CI zakończone pomyślnie' : '❌ CI zakończone z błędami';
-
-            // Przygotuj treść komentarza z informacją o statusie testów
-            let coverageSummary = '';
-            if (testStatus === 'success') {
-              try {
-                const fs = require('fs');
-                const summaryPath = 'coverage/coverage-final.json';
-                if (fs.existsSync(summaryPath)) {
-                  const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
-                  const total = summary.total;
-                  
-                  coverageSummary = `
-                  ### Pokrycie testami:
-                  
-                  | Kategoria | Pokrycie |
-                  | --- | --- |
-                  | Linie | ${total.lines.pct}% |
-                  | Instrukcje | ${total.statements.pct}% |
-                  | Funkcje | ${total.functions.pct}% |
-                  | Gałęzie | ${total.branches.pct}% |
-                  `;
-                } else {
-                  coverageSummary = `
-                  ### Testy przeszły pomyślnie
-                  
-                  Raport pokrycia testami nie został wygenerowany, ponieważ użyto komendy bez opcji coverage.
-                  `;
-                }
-              } catch (error) {
-                coverageSummary = `
-                ### Testy przeszły pomyślnie
-                
-                Raport pokrycia testami nie został wygenerowany lub wystąpił błąd odczytu: ${error.message}
-                `;
-              }
-            } else {
-              coverageSummary = `Nie wygenerowano raportu pokrycia testami, ponieważ testy nie przeszły pomyślnie.`;
-            }
-
-            // Przygotuj szczegółowe informacje o błędach
-            let errorDetails = '';
-            if (!isSuccess) {
-              errorDetails = `
-              ### Szczegóły błędów:
-              
-              ${lintStatus !== 'success' ? `- Lintowanie: Sprawdź logi CI, aby zobaczyć błędy lintowania.` : ''}
-              ${testStatus !== 'success' ? `- Testy jednostkowe: Sprawdź logi CI, aby zobaczyć błędy testów.` : ''}
-              
-              [Kliknij tutaj aby zobaczyć pełne logi](${context.payload.repository.html_url}/actions/runs/${context.runId})
-              `;
-            }
-
-            const message = `
-            ## ${ciStatus}
-
-            - ${lintIcon} Lintowanie: ${lintStatus === 'success' ? 'Zakończone powodzeniem' : 'Zakończone niepowodzeniem'}
-            - ${testIcon} Testy jednostkowe: ${testStatus === 'success' ? 'Zakończone powodzeniem' : 'Zakończone niepowodzeniem'}
-
-            ${errorDetails}
-            ${coverageSummary}
-            `;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+      - name: Dodanie komentarza do PR dla błędu
+        if: steps.check-status.outputs.workflow_status == 'failure'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ github.event.pull_request.number }}
+          message: ${{ steps.failure-comment.outputs.comment }}
