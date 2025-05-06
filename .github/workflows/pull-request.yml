@@ -81,13 +81,24 @@ jobs:
         if: steps.check-status.outputs.workflow_status == 'success'
         id: success-comment
         run: |
+          COVERAGE_INFO="Brak informacji o pokryciu"
+          if [ -f "coverage/coverage-summary.json" ]; then
+            COVERAGE_INFO=$(jq -r '"Całkowite pokrycie: " + (.total.statements.pct|tostring) + "%"' coverage/coverage-summary.json 2>/dev/null || echo "Nie można odczytać informacji o pokryciu")
+          elif [ -f "coverage/summary.json" ]; then
+            COVERAGE_INFO=$(jq -r '"Całkowite pokrycie: " + (.total.statements.pct|tostring) + "%"' coverage/summary.json 2>/dev/null || echo "Nie można odczytać informacji o pokryciu")
+          elif [ -f "coverage/index.html" ]; then
+            COVERAGE_INFO="Raport pokrycia dostępny w artefaktach workflow"
+          fi
+
           COMMENT="📊 **Status PR:** ✅ Wszystkie testy przeszły pomyślnie!
 
           ### Pokrycie testami:
-          $(cat coverage/coverage-summary.json | jq -r '\"Całkowite pokrycie: \" + (.total.statements.pct|tostring) + \"%\"')
+          ${COVERAGE_INFO}
 
           *Workflow wykonany w ${{ github.workflow }} (#${{ github.run_number }})*"
-          echo "comment=$COMMENT" >> $GITHUB_OUTPUT
+          echo "comment<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Przygotowanie komentarza dla błędu
         if: steps.check-status.outputs.workflow_status == 'failure'
@@ -102,7 +113,9 @@ jobs:
           Proszę zapoznać się z logami workflow aby naprawić błędy.
 
           *Workflow wykonany w ${{ github.workflow }} (#${{ github.run_number }})*"
-          echo "comment=$COMMENT" >> $GITHUB_OUTPUT
+          echo "comment<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Dodanie komentarza do PR dla sukcesu
         if: steps.check-status.outputs.workflow_status == 'success'
