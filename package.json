@@ -16,10 +16,11 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:codegen": "playwright codegen http://localhost:4321"
+    "test:e2e:codegen": "playwright codegen http://localhost:4321",
+    "dev:e2e": "npm run astro dev -- --mode test"
   },
   "dependencies": {
-    "@astrojs/node": "^9.2.0",
+    "@astrojs/node": "^9.2.1",
     "@astrojs/react": "4.2.2",
     "@astrojs/sitemap": "3.3.0",
     "@radix-ui/react-label": "^2.1.4",
@@ -52,6 +53,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "@vitest/coverage-v8": "^3.1.2",
     "@vitest/ui": "^3.1.2",
+    "dotenv": "^16.5.0",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-import-resolver-typescript": "4.2.5",
