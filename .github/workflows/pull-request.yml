@@ -90,7 +90,7 @@ jobs:
             if (testStatus === 'success') {
               try {
                 const fs = require('fs');
-                const summaryPath = 'coverage/coverage-summary.json';
+                const summaryPath = 'coverage/coverage-final.json';
                 if (fs.existsSync(summaryPath)) {
                   const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
                   const total = summary.total;
