@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Uruchom lintowanie
-        run: npm run lint:check
+        run: npm run lint
 
   unit-tests:
     name: Testy jednostkowe
