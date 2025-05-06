@@ -43,13 +43,13 @@ jobs:
         run: npm ci
 
       - name: Uruchom testy jednostkowe z pokryciem
-        run: npm run test:coverage
+        run: npm run test
 
       - name: Zachowaj raporty pokrycia kodu
         uses: actions/upload-artifact@v4
         with:
-          name: unit-coverage-report
-          path: coverage/
+          name: unit-test-report
+          path: unit-test-result/
           retention-days: 5
           if-no-files-found: error
 
@@ -66,8 +66,8 @@ jobs:
         uses: actions/download-artifact@v4
         if: ${{ needs.unit-tests.result == 'success' }}
         with:
-          name: unit-coverage-report
-          path: coverage/
+          name: unit-test-report
+          path: unit-test-result/
 
       - name: Dodaj komentarz do PR
         uses: actions/github-script@v7
@@ -90,7 +90,7 @@ jobs:
             if (testStatus === 'success') {
               try {
                 const fs = require('fs');
-                const summaryPath = 'coverage/coverage-summary.json';
+                const summaryPath = 'unit-test-result/coverage-summary.json';
                 if (fs.existsSync(summaryPath)) {
                   const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
                   const total = summary.total;
