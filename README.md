@@ -1,8 +1,8 @@
-# fiszki-ai-kp
+# FiszkiAIkp
 
 ## Project Description
 
-fiszki-ai-kp is a web-based educational application that enables users to create high-quality flashcards using both AI-assisted automatic generation and manual editing. Designed for primary and secondary school students, the app leverages the spaced repetition method to enhance learning efficiency and simplify the study process.
+FiszkiAIkp is a web-based educational application that enables users to create high-quality flashcards using both AI-assisted automatic generation and manual editing. Designed for primary and secondary school students, the app leverages the spaced repetition method to enhance learning efficiency and simplify the study process.
 
 ## Tech Stack
 
